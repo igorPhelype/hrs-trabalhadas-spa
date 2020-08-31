@@ -16,11 +16,14 @@ const Loader = () => {
     )
 }
 
+const intervaloTrabalhadoInitialState = {
+    horaInicial: '',
+    horaFinal: ''
+}
+
 export default function CalcularHorasTrabalhadas() {
-    const [intervaloTrabalhado, setIntervaloTrabalhado] = useState({
-        horaInicial: '',
-        horaFinal: ''
-    })
+    const [intervaloTrabalhado, setIntervaloTrabalhado] = useState(intervaloTrabalhadoInitialState)
+    const [resultado, setResultado] = useState(false)
     const [loading, setLoading] = useState(false)
 
     const handleSubmit = async (e = new Event()) => {
@@ -35,12 +38,23 @@ export default function CalcularHorasTrabalhadas() {
                 method: 'post',
                 body: JSON.stringify(intervaloTrabalhado),
                 headers: headers,
-            }).then((response) => {
-                setTimeout(() => setLoading(false), 3000)
-                return { status: response.status, body: response.json() }
+            }).then(async (response) => {
+                return { status: response.status, body: await response.json() }
             })
+            if (status === 200) {
+                console.log(body)
+                setTimeout(() => {
+                    setLoading(false)
+                    setResultado(body)
+                }, 1500)
+            }else{
+                setTimeout(() => {
+                    setLoading(false)
+                }, 1500)
+            }
         } catch (e) {
             console.log(e)
+            setTimeout(() => setLoading(false), 1000)
         }
     }
 
@@ -50,29 +64,68 @@ export default function CalcularHorasTrabalhadas() {
 
     return (
         <div className="row">
-            <div class="col s12 m6 mb-0 offset-m3 l4 offset-l4">
-                <h4>Calculo de horas trabalhadas</h4>
-                <p>Insira abaixo a hora de entrada e a hora de saída</p>
-                <div className="card center-align">
-                    <div className="card-content">
-                        <form onSubmit={handleSubmit}>
-                            <div className="row">
-                                <div className="input-field col s12">
-                                    <input onChange={handleInputChange} placeholder="00:00" id="horaInicial" name="horaInicial" type="text" className="validate" />
-                                    <label for="horaInicial">Hora de entrada (00:00)</label>
-                                </div>
-                                <div className="input-field col s12">
-                                    <input onChange={handleInputChange} placeholder="00:00" id="horaFinal" name="horaFinal" type="text" className="validate" />
-                                    <label for="horaFinal">Hora de saída (00:00)</label>
-                                </div>
-                            </div>
-                            <div className="row">
-                                <button className="btn waves-effect waves-light" type="submit" name="action">Submit<i class="material-icons right">send</i></button>
-                            </div>
-                        </form>
+            {resultado ?
+                <div class="col s12 m6 mb-0 offset-m3 l4 offset-l4">
+                    <h4 className="title">Resultado:</h4>
+                    <p className="text">Veja abaixo o resultado do calculo de horas trabalhadas</p>
+                    <div className="card">
+                        <div className="card-content">
+                            {[{
+                                label: "Entrada",
+                                value: intervaloTrabalhado.horaInicial,
+                            }, {
+                                label: "Saída",
+                                value: intervaloTrabalhado.horaFinal,
+                            }, {
+                                label: "Total",
+                                value: resultado.horasTrabalhadasTotal,
+                            }, {
+                                label: "Horas diurnas",
+                                value: resultado.horasTrabalhadasDia,
+                            }, {
+                                label: "Horas norturnas",
+                                value: resultado.horasTrabalhadasNoite,
+                            }].map(item => {
+                                return (
+                                    <div className="result-item">
+                                        <h6 className="text">{item.label}: </h6>
+                                        <p className="accent-text">{item.value}</p>
+                                    </div>
+                                )
+                            })}
+                            <button className="btn waves-effect waves-light" onClick={() => {
+                                setResultado(null)
+                                setIntervaloTrabalhado(intervaloTrabalhadoInitialState)
+                            }}>Voltar</button>
+                        </div>
                     </div>
                 </div>
-            </div>
+                :
+                <div className="col s12 m6 mb-0 offset-m3 l4 offset-l4">
+                    <h4 className="title">Calculo de horas trabalhadas</h4>
+                    <p className="text">Insira abaixo a hora de entrada e a hora de saída</p>
+                    <div className="card center-align">
+                        <div className="card-content">
+                            <form onSubmit={handleSubmit}>
+                                <div className="row">
+                                    <div className="input-field col s12">
+                                        <input onChange={handleInputChange} value={intervaloTrabalhado.horaInicial} placeholder="00:00" id="horaInicial" name="horaInicial" type="text" className="validate" />
+                                        <label for="horaInicial">Hora de entrada (00:00)</label>
+                                    </div>
+                                    <div className="input-field col s12">
+                                        <input onChange={handleInputChange} value={intervaloTrabalhado.horaFinal} placeholder="00:00" id="horaFinal" name="horaFinal" type="text" className="validate" />
+                                        <label for="horaFinal">Hora de saída (00:00)</label>
+                                    </div>
+                                </div>
+                                <div style={{ height: 41 }} className="row">
+                                    {loading ?
+                                        <Loader /> :
+                                        <button className="btn waves-effect waves-light" type="submit" name="action">Calcular</button>}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>}
         </div>
     )
 }

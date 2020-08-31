@@ -31,3 +31,19 @@ body {
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+.text{
+    color: var(--text-color);
+}
+
+.title{
+    color: var(--title-color);
+}
+
+.accent-text{
+    color: var(--primary-color);
+}
+
+.result-item{
+    margin-bottom: 16px;
+}
